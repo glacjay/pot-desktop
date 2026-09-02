@@ -17,7 +17,8 @@ import * as _caiyun from './caiyun';
 import * as _chatglm from './chatglm';
 import * as _geminipro from './geminipro';
 import * as _ollama from './ollama';
-import * as _ecdict from './ecdict';
+// ecdict 已移除：其唯一实现依赖的官方中转接口 pot-app.com/api/dict 已停止服务（405）。
+// 请改用离线插件：https://github.com/pot-app/pot-app-translate-plugin-ecdict
 import * as _lingva from './lingva';
 
 export const deepl = _deepl;
@@ -39,5 +40,4 @@ export const caiyun = _caiyun;
 export const chatglm = _chatglm;
 export const geminipro = _geminipro;
 export const ollama = _ollama;
-export const ecdict = _ecdict;
 export const lingva = _lingva;
