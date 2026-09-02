@@ -55,13 +55,18 @@ void listen('tauri://focus', () => {
     }
 });
 // 监听 move 事件取消 blurTimeout 时间之内的关闭窗口
-void listen('tauri://move', () => {
-    info('Move');
-    if (blurTimeout) {
-        info('Cancel Close');
-        clearTimeout(blurTimeout);
-    }
-});
+// 仅 Windows 需要：Windows 下拖动窗口时会先切换成 blur 再立即 move/focus。
+// 在 Wayland 合成器（niri、Hyprland 等）上，窗口失焦时 wry 会伴随产生一个伪 move 事件，
+// 若注册此监听，失焦后的关闭计时器会立刻被取消，导致「失焦自动关闭」永远失效。
+if (osType === 'Windows_NT') {
+    void listen('tauri://move', () => {
+        info('Move');
+        if (blurTimeout) {
+            info('Cancel Close');
+            clearTimeout(blurTimeout);
+        }
+    });
+}
 
 export default function Translate() {
     const [closeOnBlur] = useConfig('translate_close_on_blur', true);
@@ -74,7 +79,7 @@ export default function Translate() {
         'lingva',
         'yandex',
         'google',
-        'ecdict',
+        'cambridge_dict',
     ]);
     const [recognizeServiceInstanceList] = useConfig('recognize_service_list', ['system', 'tesseract']);
     const [ttsServiceInstanceList] = useConfig('tts_service_list', ['lingva_tts']);
