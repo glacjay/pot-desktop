@@ -373,7 +373,8 @@ jobs:
     trigger-docs-update:
         needs: [build-for-macos, build-for-windows, build-for-linux]
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags')
+        # 仅上游仓库需要触发官方文档站更新
+        if: startsWith(github.ref, 'refs/tags') && github.repository_owner == 'pot-app'
         steps:
             - name: Trigger update
               run: |
@@ -425,7 +426,8 @@ jobs:
         name: Update Homebrew cask
         needs: build-for-macos
         runs-on: macos-latest
-        if: startsWith(github.ref, 'refs/tags')
+        # 仅上游仓库需要更新官方 Homebrew tap（fork 没有该仓库权限）
+        if: startsWith(github.ref, 'refs/tags') && github.repository_owner == 'pot-app'
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -454,7 +456,8 @@ jobs:
         name: Update WinGet Package
         needs: build-for-windows
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags')
+        # 仅上游仓库需要更新 WinGet 包
+        if: startsWith(github.ref, 'refs/tags') && github.repository_owner == 'pot-app'
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
