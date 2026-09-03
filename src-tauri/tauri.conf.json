@@ -69,7 +69,7 @@
             "targets": "all",
             "identifier": "com.pot-app.desktop",
             "longDescription": "A cross-platform text translation and ocr software",
-            "shortDescription": "Pot App",
+            "shortDescription": "划词翻译和 OCR 软件",
             "externalBin": [],
             "resources": [],
             "icon": [
