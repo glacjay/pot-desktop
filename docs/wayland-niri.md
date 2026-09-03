@@ -19,6 +19,34 @@
 本 fork 已修复：失焦关窗、移除死服务 ecdict、useVoice 补 `resume()`。
 直接按官方文档构建即可，产物链接系统 webkit2gtk-4.1，在 niri 上原生渲染正常。
 
+### 本机（Ubuntu 26.04）构建 webkit2gtk-4.1 直装 deb — 已验证的完整配方
+
+```bash
+sudo apt install -y libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libgtk-3-dev \
+  libayatana-appindicator3-dev librsvg2-dev patchelf libxdo-dev libssl-dev
+rustup toolchain install 1.80.1 --profile minimal   # wry 0.24 在新版 rustc 下编译不过（glob 同名 trait 方法解析变更）
+rustup override set 1.80.1                          # 在仓库目录内执行
+
+# pkg-config 名字 shim（老 crate 找 webkit2gtk-4.0/javascriptcoregtk-4.0/libsoup-2.4）
+mkdir -p /tmp/pot-pc
+printf 'Name: s\nVersion: 2.52.6\nRequires: gtk+-3.0 libsoup-3.0 javascriptcoregtk-4.1\nLibs: -l:libwebkit2gtk-4.1.so.0\n' > /tmp/pot-pc/webkit2gtk-4.0.pc
+printf 'Name: s\nVersion: 2.52.6\nLibs: -l:libjavascriptcoregtk-4.1.so.0\n' > /tmp/pot-pc/javascriptcoregtk-4.0.pc
+printf 'Name: s\nVersion: 2.74.0\nLibs: \n' > /tmp/pot-pc/libsoup-2.4.pc
+# 链接器 shim：sys crate 按包名生成 -lwebkit2gtk-4.0，给 ld 一个同名录符号链接
+mkdir -p /tmp/pot-link
+ln -sf /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.1.so.0      /tmp/pot-link/libwebkit2gtk-4.0.so
+ln -sf /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.1.so.0 /tmp/pot-link/libjavascriptcoregtk-4.0.so
+
+pnpm install
+export PKG_CONFIG_PATH=/tmp/pot-pc LIBRARY_PATH=/tmp/pot-link
+pnpm tauri build -b deb
+```
+
+产物二进制 `NEEDED` 直接是 `libwebkit2gtk-4.1.so.0` / `libsoup-3.0.so.0`，完全 standalone。
+tauri 打 deb 时会硬编码依赖 `libwebkit2gtk-4.0-37`，打包后用 `dpkg-deb -R` 改 control 里的
+Depends 为 `libwebkit2gtk-4.1-0` 再 `-b` 重打即可（本 fork release 里的
+`pot_*_webkit41.deb` 就是这样来的）。
+
 ## 方案二：官方 AppImage 的运行时移植（不重编译）
 
 官方 AppImage 捆绑 webkit2gtk-4.0（永不渲染）。把它解包、借系统 4.1 顶替：
